@@ -1,5 +1,6 @@
 import './style.css';
 import * as THREE from 'three';
+import gsap from 'gsap';
 
 // creating the scene
 const scene = new THREE.Scene();
@@ -95,6 +96,11 @@ let time = Date.now();
 // this animation trick instead of the requestAnimationFrame method
 const clock = new THREE.Clock();
 
+// this is using the green sock library to do an animation where we move the red cube to the right of the page after 1 sec,
+// then to the middle after 2 seconds with a longer duration to make it look about the same speed
+gsap.to(mesh.position, { duration: 1, x: 2, delay: 1 })
+gsap.to(mesh.position, { duration: 2, x: 0, delay: 2 })
+
 // animations with requestAnimationFrame. This is implemented with a function being called on each frame forever
 // the requestAnimationFrame methods is to call the function provided on the next frame. It is not to do animations
 const looper = () => {
@@ -112,8 +118,8 @@ const looper = () => {
     const newTime = clock.getElapsedTime();
     // mesh.rotation.y = newTime * Math.PI // this is to rotate the cube 180 degrees every second
     // If you want to rotate the cube in a complete circle, use the following methods in tandem
-    mesh.position.x = Math.sin(newTime) // this is to move the cube left and right
-    mesh.position.y = Math.cos(newTime) // this is to move the cube up and down
+    // mesh.position.x = Math.sin(newTime) // this is to move the cube left and right
+    // mesh.position.y = Math.cos(newTime) // this is to move the cube up and down
 
     // this is doing the same as above, but with the camera moving instead of the cube and the camera tilted towards the cube
     // camera.position.x = Math.sin(newTime) 
