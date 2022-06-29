@@ -67,10 +67,10 @@ camera.position.set(0, 0, 3);
 scene.add(camera);
 
 //these are a few methods worth exploring
-console.log(mesh.position.length());
-console.log(mesh.position.distanceTo(camera.position));
-console.log(mesh.position.normalize());
-console.log(mesh.position.length());
+// console.log(mesh.position.length());
+// console.log(mesh.position.distanceTo(camera.position));
+// console.log(mesh.position.normalize());
+// console.log(mesh.position.length());
 
 // one I will demonstrate is the lookAt method
 // it roates the object so that its -z faces the target you provide
@@ -87,4 +87,41 @@ const renderer = new THREE.WebGLRenderer({
     canvas
 });
 renderer.setSize(sizes.width, sizes.height);
-renderer.render(scene, camera);
+
+// this is to take the previous time and subtract it from the current time to get whats call the delta time
+let time = Date.now();
+
+// clock class has methods in which you can count exact seconds. I will use that to rotate the cube with 
+// this animation trick instead of the requestAnimationFrame method
+const clock = new THREE.Clock();
+
+// animations with requestAnimationFrame. This is implemented with a function being called on each frame forever
+// the requestAnimationFrame methods is to call the function provided on the next frame. It is not to do animations
+const looper = () => {
+    // // these calculations are to make sure the cube is rotating at the same speed, regardless of its frame rate
+    // const current = Date.now();
+    // const delta = current - time;
+    // time = current
+
+    // // this updates the red cube to rotate every frame by the specified amount below
+    // // the delta is to make sure every computer shares the same speed at which it is rotating
+    // mesh.rotation.y += 0.001 * delta
+
+    // this is using the clock class to shift the position of the cube by one second, making it another way
+    // to use animation and to ensure every computer is rotating it at the same speed
+    const newTime = clock.getElapsedTime();
+    // mesh.rotation.y = newTime * Math.PI // this is to rotate the cube 180 degrees every second
+    // If you want to rotate the cube in a complete circle, use the following methods in tandem
+    mesh.position.x = Math.sin(newTime) // this is to move the cube left and right
+    mesh.position.y = Math.cos(newTime) // this is to move the cube up and down
+
+    // this is doing the same as above, but with the camera moving instead of the cube and the camera tilted towards the cube
+    // camera.position.x = Math.sin(newTime) 
+    // camera.position.y = Math.cos(newTime) 
+    // camera.lookAt(mesh.position)
+
+    // this is to render everything every frame
+    renderer.render(scene, camera);
+    window.requestAnimationFrame(looper)
+}
+looper()
