@@ -1,3 +1,16 @@
-body {
-    background-color: blue;
+/* few ways to remove margins when using full screen: */
+/* * {
+    margin: 0;
+    padding: 0;
+} */
+.webgl {
+    /* this can also work with absolute */
+    position: fixed;
+    top: 0;
+    left: 0;
+    outline: none;
+}
+/* this will prevent any scroll past the limits of the page*/
+html, body {
+    overflow: hidden;
 }

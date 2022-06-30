@@ -62,9 +62,39 @@ scene.add(axesHelper)
 // further than far will not show up. Do not use really small and really large values for these. This is called
 // z-fighting and will potentially cause your GPU to have trouble putting one object infron of another
 const sizes = {
-    width: 800,
-    height: 800
+    width: window.innerWidth,
+    height: window.innerHeight
 };
+
+// this is to listen to the resize event and make sure the viewport is the same with every time the browser is resized
+window.addEventListener('resize', e => {
+    sizes.width = window.innerWidth;
+    sizes.height = window.innerHeight;
+    camera.aspect = sizes.width/sizes.height;
+    camera.updateProjectionMatrix();
+    renderer.setSize(sizes.width, sizes.height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+})
+
+// this will add support for fullscreen mode by double clicking anywhere
+// this would normally work with one simple if statement, but for older browers, it will not without webkit
+window.addEventListener('dblclick', e => {
+    const fullscreen = document.fullscreenElement || document.webkitFullscreenElement
+    if (!fullscreen) {
+        if (canvas.requestFullscreen) {
+            canvas.requestFullscreen();
+        } else {
+            canvas.webkitRequestFullscreen();
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        }
+    }
+});
+
 const camera = new THREE.PerspectiveCamera(100, sizes.width/sizes.height, 0.1, 100);
 // now I am going to create a perspective camera that the user can move. I need to first remove the 
 // mesh rotation in the looper function. Then I will grab the mouse coordinates. The most effective
@@ -119,6 +149,9 @@ const renderer = new THREE.WebGLRenderer({
     canvas
 });
 renderer.setSize(sizes.width, sizes.height);
+
+// this allows to see a better quality picture depending on the device and limit the pixel ration to no more than 2
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
 // I will try to demonstrate orbit controls by importing the class from node modules. It takes
 // two parameters, the camera and a DOM element, which I will use the canvas tag selected above
