@@ -4,6 +4,51 @@ import gsap from 'gsap';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as lil from 'lil-gui';
 
+// this is one way to load an image, which is by grabbing it in a folder called static and using the Image class
+// we cannot use the image directly however, so we need to transform it into a texture
+// we do so by declaring the colorTexture variable outside the function, and upon the load event, the texture 
+// will be updated. We then add it to the material with the map property instead of color
+// const images = new Image();
+// const colorTexture = new THREE.Texture(images);
+// images.addEventListener('load', () => {
+//     colorTexture.needsUpdate = true;
+// })
+// images.src = './textures/door/color.jpg';
+
+// this is another way to load an image and it makes it somewhat easier
+// you will still have to add it to the material with the map property, but it's much less code and complication
+// this can also load multiple textures
+// you can send three functions after the path, which are the load, progress, and error functions
+// const textureLoader = new THREE.TextureLoader();
+// const colorTexture = textureLoader.load('./textures/door/color.jpg',
+//     () => console.log('load'), // this will fire when the image loads successfully
+//     () => console.log('progress'), // this will fire when the image loading is in progress
+//     () => console.log('error') // this will fire when the image can't load and something goes wrong
+// );
+
+
+// to make sure everythig we need is loaded before the user can experience the page, we use a loading manager
+// it is useful if we want to know the global loading progress or to be information when everything is loaded
+// you can use the loadingManager variable with things like onStart, onProgress, etc. to see certain events
+const loadingManager = new THREE.LoadingManager();
+loadingManager.onStart = () => {
+    console.log('on start')
+}
+loadingManager.onLoaded = () => {
+    console.log('on load')
+}
+loadingManager.onProgress = () => {
+    console.log('on progress')
+}
+const textureLoader = new THREE.TextureLoader(loadingManager);
+const colorTexture = textureLoader.load('/textures/door/color.jpg');
+const alphaTexture = textureLoader.load('/textures/door/alpha.jpg');
+const heightTexture = textureLoader.load('/textures/door/height.jpg');
+const normalTexture = textureLoader.load('/textures/door/normal.jpg');
+const ambientOcclusionTexture = textureLoader.load('/textures/door/ambientOcclusion.jpg');
+const metalnessTexture = textureLoader.load('/textures/door/metalness.jpg');
+const roughnessTexture = textureLoader.load('/textures/door/roughness.jpg');
+
 // this is for the debugger to dynamically change the color of the main cube as well as add a spin feature
 // the function has to be within an object in order for it to be used (since the properties of the debugger are objects)
 const param = {
@@ -55,7 +100,9 @@ const geometry = new THREE.BoxGeometry(1, 1, 1, 5, 5, 5);
 // const geometry = new THREE.BufferGeometry();
 // geometry.setAttribute('position', posAtt);
 
-const material = new THREE.MeshBasicMaterial({ color: param.color, wireframe: true });
+// const material = new THREE.MeshBasicMaterial({ color: param.color });
+// the above way was for the red cube, but we use map to use a texture
+const material = new THREE.MeshBasicMaterial({ map: colorTexture });
 const mesh = new THREE.Mesh(geometry, material);
 mesh.position.set(0, 0, 0);
 scene.add(mesh);
@@ -74,6 +121,7 @@ const cube3 = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasic
 cube3.position.set(2, 0, 0);
 group.add(cube3);
 group.position.set(0, 1, 0);
+group.visible = false
 
 
 // scale changes the value of the geometry to "scale" with the coordinates you choose
@@ -363,4 +411,22 @@ window.addEventListener('keydown', (e) => {
 
 /* additional notes for debuggin:
 - useful libraries: lil-gui (used in this repo),control-panel, ControlKit, Uil, Tweakpane, Guify, Oui
+*/
+
+
+/* additional notes for textures:
+- What are they? They are images that will cover the surface of the geometric pattern you choose
+- there are meny types with many different effects, and this repo will cover the door textures imported 
+
+- PBR -> physically based rendering-> you have a lot of algorithms that follow real life directions to get realistic results
+- PBR is becoming the standard and many different technologies are using it
+- more info: https://marmoset.co/posts/basic-theory-of-physically-based-rendering/ 
+- more info: https://marmoset.co/posts/physically-based-rendering-and-you-can-too/
+
+- you can extract the url of an image if it is in the src folder by importing it at the top of this page
+- this would look like import image from './image.png'
+- the other way I'll be doing by using the static folder
+
+- there are a few ways to load the image, but I'm going to load it from a class
+
 */
