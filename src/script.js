@@ -2,6 +2,16 @@ import './style.css';
 import * as THREE from 'three';
 import gsap from 'gsap';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import * as lil from 'lil-gui';
+
+// this is for the debugger to dynamically change the color of the main cube as well as add a spin feature
+// the function has to be within an object in order for it to be used (since the properties of the debugger are objects)
+const param = {
+    color: 0xff0000,
+    spin: function() {
+        gsap.to(mesh.rotation, { duration: 2, y: mesh.rotation.y + Math.PI * 2 })
+    }
+};
 
 // creating the scene
 const scene = new THREE.Scene();
@@ -11,7 +21,7 @@ const scene = new THREE.Scene();
 // created material variable to store the material/color the cube will be covered with
 // created mesh variable to combine the geometry and material into something we can add to the scene
 // lastly add it to the scene
-// const geometry = new THREE.BoxGeometry(1, 1, 1, 5, 5, 5);
+const geometry = new THREE.BoxGeometry(1, 1, 1, 5, 5, 5);
 
 // If I wanted to create a specific triangle instead of the box, I could do the following
 // these are broken down into three vertices, each containing an x, y, and z axis, which is why we used 9 values 
@@ -36,20 +46,18 @@ const scene = new THREE.Scene();
 // geometry.setAttribute('position', posAtt)
 
 // this is creating 100 triangles, each composed of three vertices and each vertex will have three values
-const counter = 100;
-const posArr = new Float32Array(counter * 3 * 3);
-for(let i = 0; i < counter * 3 * 3; i++) {
-    posArr[i] = (Math.random() - 0.5) * 5;
-};
-const posAtt = new THREE.BufferAttribute(posArr, 3);
-const geometry = new THREE.BufferGeometry();
-geometry.setAttribute('position', posAtt);
+// const counter = 100;
+// const posArr = new Float32Array(counter * 3 * 3);
+// for(let i = 0; i < counter * 3 * 3; i++) {
+//     posArr[i] = (Math.random() - 0.5) * 5;
+// };
+// const posAtt = new THREE.BufferAttribute(posArr, 3);
+// const geometry = new THREE.BufferGeometry();
+// geometry.setAttribute('position', posAtt);
 
-
-
-const material = new THREE.MeshBasicMaterial({ color: 'red', wireframe: true });
+const material = new THREE.MeshBasicMaterial({ color: param.color, wireframe: true });
 const mesh = new THREE.Mesh(geometry, material);
-mesh.position.set(0, -1, 1);
+mesh.position.set(0, 0, 0);
 scene.add(mesh);
 
 // if you had to build a house, you would have to add walls, doors, windows, etc.
@@ -212,8 +220,6 @@ const clock = new THREE.Clock();
 // gsap.to(mesh.position, { duration: 1, x: 2, delay: 1 })
 // gsap.to(mesh.position, { duration: 2, x: 0, delay: 2 })
 
-// animations with requestAnimationFrame. This is implemented with a function being called on each frame forever
-// the requestAnimationFrame methods is to call the function provided on the next frame. It is not to do animations
 const looper = () => {
     // // these calculations are to make sure the cube is rotating at the same speed, regardless of its frame rate
     // const current = Date.now();
@@ -254,10 +260,54 @@ const looper = () => {
 
     // this is to render everything every frame
     renderer.render(scene, camera);
+
+    // animations with requestAnimationFrame. This is implemented with a function being called on each frame forever
+    // the requestAnimationFrame methods is to call the function provided on the next frame. It is not to do animations
     window.requestAnimationFrame(looper)
 }
-looper()
+looper();
 
+// using the lil-gui library to debug app and make sure you place it below the things in your code you're debugging
+//first values have to be an object, then the property you're looking to debug, then the minimum
+// value, maximum value, and the step to show the precision by which the position can be moved by
+const debug = new lil.GUI({ width: 200 });
+// starts the program with the panel closed
+debug.close();
+//the below features can also be written like so:
+// debug.add(mesh.position, 'y').min(- 3).max(3).step(0.01)
+
+//you can also change the name of each of these labels with the name method
+//debug.add(mesh.position, 'x').name('something');
+debug.add(mesh.position, 'x', -3, 3, 0.1);
+debug.add(mesh.position, 'y', -3, 3, 0.1);
+debug.add(mesh.position, 'z', -3, 3, 0.1);
+
+// gives the ability to toggle the visibility of the object you pass it
+debug.add(mesh, 'visible').name('main box visible');
+debug.add(group, 'visible').name('box group visible');
+
+// this can also be done with the wireframe property
+debug.add(material, 'wireframe').name('main box wireframe');
+debug.addColor(param, 'color').name('main box color');
+debug.onChange(() => {
+    material.color.set(param.color)
+});
+debug.add(param, 'spin').name('main box spin button');
+
+// this allows users to toggle the debugger by pressing the enter key
+window.addEventListener('keydown', (e) => {
+    if (e.key === "Enter") {
+        if (debug._hidden) {
+            debug.show();
+        } else {
+            debug.hide();
+        }
+    }
+});
+
+//  this is to start the program with the debugger closed and having the option to click on it to open
+
+///////////////////////////////////////////The end of my code///////////////////////////////////////////////////////////////////
 /* additional notes for cameras:
 - Camera class -> do not use directly (all other cameras inherit from camera class)
 
@@ -309,4 +359,8 @@ looper()
 - a bunch of vertices and then the indices to create faces and re-use vertices multiple times. This improves 
 - the performance greatly and can be seen in the index section of the buffer attribute documentation since it
 - largely depends on the variables associated with it, like what kind of shape and 
+*/
+
+/* additional notes for debuggin:
+- useful libraries: lil-gui (used in this repo),control-panel, ControlKit, Uil, Tweakpane, Guify, Oui
 */
