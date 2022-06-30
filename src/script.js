@@ -13,7 +13,7 @@ const scene = new THREE.Scene();
 const geometry = new THREE.BoxGeometry(1, 1, 1);
 const material = new THREE.MeshBasicMaterial({ color: 'red' });
 const mesh = new THREE.Mesh(geometry, material);
-mesh.position.set(0.7, -0.6, 1);
+mesh.position.set(0, -1, 1);
 scene.add(mesh);
 
 // if you had to build a house, you would have to add walls, doors, windows, etc.
@@ -55,17 +55,31 @@ scene.add(axesHelper)
 
 // creating the camera angle
 // I used a perspective camera, meaning objects far away will appear small and objects close up will appear large
-// takes in two parameters. The first is the field of view in degrees and the second is the aspect ratio
+// takes in four parameters. The first is the field of view in degrees and the second is the aspect ratio, which is
+// the width of the render divided by the height of the render. The third and fourth are called near and far, which
+// corespond to how close and how far the camera can see. Any object or part of the object closer than near or 
+// further than far will not show up. Do not use really small and really large values for these. This is called
+// z-fighting and will potentially cause your GPU to have trouble putting one object infron of another
 const sizes = {
     width: 800,
-    height: 600
+    height: 800
 };
-const camera = new THREE.PerspectiveCamera(75, sizes.width/sizes.height);
+const camera = new THREE.PerspectiveCamera(100, sizes.width/sizes.height, 0.1, 100);
 // This will not work because everything is in the center. The camera is inside the cube itself
 // we need to move the camera backwards with the position, rotation, and scale properties
 // the set method below is shorthand for editing the x, y, and z axis
 camera.position.set(0, 0, 3);
 scene.add(camera);
+
+// orthographic camera differs from perspective camera by its lack of perspective
+// objects have the same size regardless of their distance to the camera
+// the parameters are left, right, top, bottom, near and far
+// The cube can look flat since you can render a square into a rectangular canvas. 
+// For this specifically, we use the canvas ratio (width by width)
+// const aspectRatio = sizes.width/sizes.height;
+// const camera = new THREE.OrthographicCamera(-5 * aspectRatio, 5 * aspectRatio, 5, -5, 0.01, 100);
+// camera.position.set(0, 0, 3);
+// scene.add(camera);
 
 //these are a few methods worth exploring
 // console.log(mesh.position.length());
@@ -98,8 +112,8 @@ const clock = new THREE.Clock();
 
 // this is using the green sock library to do an animation where we move the red cube to the right of the page after 1 sec,
 // then to the middle after 2 seconds with a longer duration to make it look about the same speed
-gsap.to(mesh.position, { duration: 1, x: 2, delay: 1 })
-gsap.to(mesh.position, { duration: 2, x: 0, delay: 2 })
+// gsap.to(mesh.position, { duration: 1, x: 2, delay: 1 })
+// gsap.to(mesh.position, { duration: 2, x: 0, delay: 2 })
 
 // animations with requestAnimationFrame. This is implemented with a function being called on each frame forever
 // the requestAnimationFrame methods is to call the function provided on the next frame. It is not to do animations
@@ -116,7 +130,7 @@ const looper = () => {
     // this is using the clock class to shift the position of the cube by one second, making it another way
     // to use animation and to ensure every computer is rotating it at the same speed
     const newTime = clock.getElapsedTime();
-    // mesh.rotation.y = newTime * Math.PI // this is to rotate the cube 180 degrees every second
+    mesh.rotation.y = newTime * Math.PI // this is to rotate the cube 180 degrees every second
     // If you want to rotate the cube in a complete circle, use the following methods in tandem
     // mesh.position.x = Math.sin(newTime) // this is to move the cube left and right
     // mesh.position.y = Math.cos(newTime) // this is to move the cube up and down
@@ -131,3 +145,15 @@ const looper = () => {
     window.requestAnimationFrame(looper)
 }
 looper()
+
+/* additional notes:
+- Camera class -> do not use directly (all other cameras inherit from camera class)
+- ArrayCamera -> renders the scene from multiple cameras on specific areas of the render
+- useful for multiplayer games that used split screen
+- StereoCamera -> render the scene through two cameras that mimic the eyes to create a parallax effect
+- use this with devices like VR headsets, red and blue glasses, or cardboard
+- CubeCamera -> does 6 renders, each one facing a different direction
+- can render the surrounding for things like environment map, reflection, or shadow map
+- OrthographicCamera -> render the scene without perspective (objects will all have same size regardless of distance)
+
+*/
