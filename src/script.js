@@ -11,8 +11,43 @@ const scene = new THREE.Scene();
 // created material variable to store the material/color the cube will be covered with
 // created mesh variable to combine the geometry and material into something we can add to the scene
 // lastly add it to the scene
-const geometry = new THREE.BoxGeometry(1, 1, 1);
-const material = new THREE.MeshBasicMaterial({ color: 'red' });
+// const geometry = new THREE.BoxGeometry(1, 1, 1, 5, 5, 5);
+
+// If I wanted to create a specific triangle instead of the box, I could do the following
+// these are broken down into three vertices, each containing an x, y, and z axis, which is why we used 9 values 
+// we could add more and it will keep continuting with however many vertices you add
+// This is a one dimensional array, but we are storing the array to a buffer attribute and the 3 is how many
+// values are composed in one vertex (3 for x, y, and z)
+// I then create a buffer geometry to be able to store a buffer attribute, and since I passed the array to the
+// buffer attribute, I then set that attribute with the name of position
+// your can also name posArr like so for the specified length, which is passed to the parameter (in this case 9) 
+// const posArr = new Float32Array(9);
+// posArr[0] = 0;
+// posArr[1] = 0;
+// ...
+
+// const posArr = new Float32Array([
+//     0, 1, 0,
+//     -1, 0, 0,
+//     1, 1, 1,
+// ])
+// const posAtt = new THREE.BufferAttribute(posArr, 3);
+// const geometry = new THREE.BufferGeometry();
+// geometry.setAttribute('position', posAtt)
+
+// this is creating 100 triangles, each composed of three vertices and each vertex will have three values
+const counter = 100;
+const posArr = new Float32Array(counter * 3 * 3);
+for(let i = 0; i < counter * 3 * 3; i++) {
+    posArr[i] = (Math.random() - 0.5) * 5;
+};
+const posAtt = new THREE.BufferAttribute(posArr, 3);
+const geometry = new THREE.BufferGeometry();
+geometry.setAttribute('position', posAtt);
+
+
+
+const material = new THREE.MeshBasicMaterial({ color: 'red', wireframe: true });
 const mesh = new THREE.Mesh(geometry, material);
 mesh.position.set(0, -1, 1);
 scene.add(mesh);
@@ -225,27 +260,53 @@ looper()
 
 /* additional notes for cameras:
 - Camera class -> do not use directly (all other cameras inherit from camera class)
+
 - ArrayCamera -> renders the scene from multiple cameras on specific areas of the render
 - useful for multiplayer games that used split screen
+
 - StereoCamera -> render the scene through two cameras that mimic the eyes to create a parallax effect
 - use this with devices like VR headsets, red and blue glasses, or cardboard
+
 - CubeCamera -> does 6 renders, each one facing a different direction
 - can render the surrounding for things like environment map, reflection, or shadow map
+
 - OrthographicCamera -> render the scene without perspective (objects will all have same size regardless of distance)
 */
 
 /* additional notes for controls:
 - Device Oriented controls will automatically retrieve the device orientation of your device, operating system,
 - and browser allow it and rotate the camera accordingly. It can be used to create immersive universes or for VR
+
 - Fly Controls enable moving the camera like if you were on a spaceship. You can rotate on all 3 axes, and go 
 - forwards and backwards
+
 - First person control is like fly control but you cannot change the up axes. It's kind of like the view of a bird
+
 - Pointer lock control uses the pointer lock JS API to move around using the WSAD controls on a keyboard while 
 - moving the perspective with your mouse
+
 - Orbit controls are similar to the controls I made previously. You cannot go below the floor or upside down, but you
 - can go 360 degrees while also zooming in and out
-- Tackball control is like orbit controls but you can loop the vertical axis indefinitely
-- Transform controls allow someone to move an object upon the x, y, and z axis
-- Drag controls also allow one to move an object but more like a drag and drop control system
 
+- Tackball control is like orbit controls but you can loop the vertical axis indefinitely
+
+- Transform controls allow someone to move an object upon the x, y, and z axis
+
+- Drag controls also allow one to move an object but more like a drag and drop control system
+*/
+
+/* additional notes for geometry:
+- What is it really? It's compoised of vertices, which are coordiate points in a 3D space) as well as faces
+- (triangles that join those vertices to create a surface)
+- They can be used for meshes but also for particles 
+
+- if we want to create our own geometry, we need to store it in a class called buffer geometry. After which,
+- we will use a native javascript array method to store the data. It is important to note that it is a typed
+- array, which means it can only store one type of value, which in this case is floats and is what I will
+- exploit or use to my advantage by calling Math.random on each value
+
+- some geometry have faces that share commom vertices. When creating a buffer geometry class, we can specify
+- a bunch of vertices and then the indices to create faces and re-use vertices multiple times. This improves 
+- the performance greatly and can be seen in the index section of the buffer attribute documentation since it
+- largely depends on the variables associated with it, like what kind of shape and 
 */
