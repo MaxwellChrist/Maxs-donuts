@@ -1,6 +1,7 @@
 import './style.css';
 import * as THREE from 'three';
 import gsap from 'gsap';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 // creating the scene
 const scene = new THREE.Scene();
@@ -65,6 +66,22 @@ const sizes = {
     height: 800
 };
 const camera = new THREE.PerspectiveCamera(100, sizes.width/sizes.height, 0.1, 100);
+// now I am going to create a perspective camera that the user can move. I need to first remove the 
+// mesh rotation in the looper function. Then I will grab the mouse coordinates. The most effective
+// way to do this is to define the cursor coordinates in an object, then manipulate them in the event
+// handler by setting a value between 0 and -1 or -0.5 and 0.5. Then within the looper function, I
+// will update the camera position
+const cursor = {
+    x: 0,
+    y: 0
+}
+window.addEventListener('mousemove', e => {
+    cursor.x = -(e.clientX / sizes.width - 0.5);
+    cursor.y = (e.clientY /sizes.height - 0.5);
+
+})
+
+
 // This will not work because everything is in the center. The camera is inside the cube itself
 // we need to move the camera backwards with the position, rotation, and scale properties
 // the set method below is shorthand for editing the x, y, and z axis
@@ -103,6 +120,18 @@ const renderer = new THREE.WebGLRenderer({
 });
 renderer.setSize(sizes.width, sizes.height);
 
+// I will try to demonstrate orbit controls by importing the class from node modules. It takes
+// two parameters, the camera and a DOM element, which I will use the canvas tag selected above
+// you can rotate with left mouse click, move up and down with right mouse click, and zoom in with wheel
+// you can also change the middle with the target property and update method
+const orbit = new OrbitControls(camera, canvas);
+orbit.target.y = -2;
+orbit.update()
+// there's also a concept called damping which smoothes the animation by adding an extra speed after a user's movement
+// It makes it look really smooth in some of the examples in the docs, so of course I gotta give it a try, but in order
+// to enable this, we have to update it frame by frame, which means we have to update this effect in the looper function
+orbit.enableDamping = true
+
 // this is to take the previous time and subtract it from the current time to get whats call the delta time
 let time = Date.now();
 
@@ -130,7 +159,7 @@ const looper = () => {
     // this is using the clock class to shift the position of the cube by one second, making it another way
     // to use animation and to ensure every computer is rotating it at the same speed
     const newTime = clock.getElapsedTime();
-    mesh.rotation.y = newTime * Math.PI // this is to rotate the cube 180 degrees every second
+    // mesh.rotation.y = newTime * Math.PI // this is to rotate the cube 180 degrees every second
     // If you want to rotate the cube in a complete circle, use the following methods in tandem
     // mesh.position.x = Math.sin(newTime) // this is to move the cube left and right
     // mesh.position.y = Math.cos(newTime) // this is to move the cube up and down
@@ -140,13 +169,28 @@ const looper = () => {
     // camera.position.y = Math.cos(newTime) 
     // camera.lookAt(mesh.position)
 
+    // this is to update the position of the camera with a certain amount of space (the multiple of 10 below)
+    // camera.position.x = cursor.x * 10 ;
+    // camera.position.y = cursor.y * 10;
+
+    // what I want to do is see a 360 view of the shape, so we have to implement a litte math to do so
+    // camera.position.x = Math.sin(cursor.x * Math.PI * 2) * 2;
+    // camera.position.y = cursor.y * 5;
+    // camera.position.z = Math.cos(cursor.x * Math.PI * 2) * 4;
+
+    // camera.lookAt(new THREE.Vector3()); // this sets the camera coordinates to zero, so it will be the middle of the screen
+    // camera.lookAt(mesh.position); // this sets the camera coordinates to the red cube, so it will start at the middle of the cube
+
+    // this is what allow the damping effect for the orbit controls to occur
+    orbit.update();
+
     // this is to render everything every frame
     renderer.render(scene, camera);
     window.requestAnimationFrame(looper)
 }
 looper()
 
-/* additional notes:
+/* additional notes for cameras:
 - Camera class -> do not use directly (all other cameras inherit from camera class)
 - ArrayCamera -> renders the scene from multiple cameras on specific areas of the render
 - useful for multiplayer games that used split screen
@@ -155,5 +199,20 @@ looper()
 - CubeCamera -> does 6 renders, each one facing a different direction
 - can render the surrounding for things like environment map, reflection, or shadow map
 - OrthographicCamera -> render the scene without perspective (objects will all have same size regardless of distance)
+*/
+
+/* additional notes for controls:
+- Device Oriented controls will automatically retrieve the device orientation of your device, operating system,
+- and browser allow it and rotate the camera accordingly. It can be used to create immersive universes or for VR
+- Fly Controls enable moving the camera like if you were on a spaceship. You can rotate on all 3 axes, and go 
+- forwards and backwards
+- First person control is like fly control but you cannot change the up axes. It's kind of like the view of a bird
+- Pointer lock control uses the pointer lock JS API to move around using the WSAD controls on a keyboard while 
+- moving the perspective with your mouse
+- Orbit controls are similar to the controls I made previously. You cannot go below the floor or upside down, but you
+- can go 360 degrees while also zooming in and out
+- Tackball control is like orbit controls but you can loop the vertical axis indefinitely
+- Transform controls allow someone to move an object upon the x, y, and z axis
+- Drag controls also allow one to move an object but more like a drag and drop control system
 
 */
