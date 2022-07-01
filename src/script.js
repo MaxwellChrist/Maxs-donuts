@@ -61,6 +61,9 @@ const ambientOcclusionTexture = textureLoader.load('/textures/door/ambientOcclus
 const metalnessTexture = textureLoader.load('/textures/door/metalness.jpg');
 const roughnessTexture = textureLoader.load('/textures/door/roughness.jpg');
 
+const gradient1 = textureLoader.load('./gradients/3.jpg');
+const matcaps1 = textureLoader.load('./matcaps/1.png');
+
 // we can repeate the texture by using the repeat property. It's a vector2 with x and y properties
 // colorTexture.repeat.x = 2;
 // colorTexture.repeat.y = 3;
@@ -354,6 +357,14 @@ const looper = () => {
     // camera.lookAt(new THREE.Vector3()); // this sets the camera coordinates to zero, so it will be the middle of the screen
     // camera.lookAt(mesh.position); // this sets the camera coordinates to the red cube, so it will start at the middle of the cube
 
+    // this is for the new shapes I added
+    sphere.rotation.x = 0.15 * newTime;
+    plane.rotation.x = 0.15 * newTime;
+    torus.rotation.x = 0.15 * newTime;
+    sphere.rotation.y = 0.1 * newTime;
+    plane.rotation.y = 0.1 * newTime;
+    torus.rotation.y = 0.1 * newTime;
+
     // this is what allow the damping effect for the orbit controls to occur
     orbit.update();
 
@@ -449,7 +460,8 @@ window.addEventListener('keydown', (e) => {
 - (triangles that join those vertices to create a surface)
 - They can be used for meshes but also for particles 
 
-- if we want to create our own geometry, we need to store it in a class called buffer geometry. After which,
+- if we want to create our own geometry, we need to store it in a class called buffer geometry (always use buffer
+- geometry instead of geometry except when using planes, just use PlaneGeometry instead). After which,
 - we will use a native javascript array method to store the data. It is important to note that it is a typed
 - array, which means it can only store one type of value, which in this case is floats and is what I will
 - exploit or use to my advantage by calling Math.random on each value
