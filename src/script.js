@@ -51,7 +51,34 @@ fontLoader.load(
         );
 
         const textGeometry2 = new TextGeometry(
-            'Full Stack Web Developer',
+            'Loves',
+            { 
+                font, size: 0.5, 
+                height: 0.2, 
+                curveSegments: 4, 
+                bevelEnabled: true, 
+                bevelThickness: 0.05, 
+                bevelSize: 0.02,
+                bevelOffset: 0,
+                bevelSegments: 2
+            }
+        );
+
+        const textGeometry3 = new TextGeometry(
+            'Taylor Brown',
+            { 
+                font, size: 0.5, 
+                height: 0.2, 
+                curveSegments: 4, 
+                bevelEnabled: true, 
+                bevelThickness: 0.05, 
+                bevelSize: 0.02,
+                bevelOffset: 0,
+                bevelSegments: 2
+            }
+        );
+        const textGeometry4 = new TextGeometry(
+            '...and donuts',
             { 
                 font, size: 0.5, 
                 height: 0.2, 
@@ -65,17 +92,37 @@ fontLoader.load(
         );
 
         textGeometry.computeBoundingBox();
-        textGeometry2.computeBoundingBox();
         textGeometry.translate(
             -(textGeometry.boundingBox.max.x - 0.02) * 0.5,
-            -(textGeometry.boundingBox.max.y - 1.52) * 0.5,
+            -(textGeometry.boundingBox.max.y - 1.02) * 0.5,
             -(textGeometry.boundingBox.max.z - 0.05) * 0.5,
         )
-        textGeometry2.center();
+        textGeometry2.computeBoundingBox();
+        textGeometry2.translate(
+            -(textGeometry2.boundingBox.max.x - 0.02) * 0.5,
+            -(textGeometry2.boundingBox.max.y + 0.52) * 0.5,
+            -(textGeometry2.boundingBox.max.z - 0.05) * 0.5,
+        )
+        
+        
+        textGeometry3.computeBoundingBox();
+        textGeometry3.translate(
+            -(textGeometry3.boundingBox.max.x - 0.02) * 0.5,
+            -(textGeometry3.boundingBox.max.y + 2.02) * 0.5,
+            -(textGeometry3.boundingBox.max.z - 0.05) * 0.5,
+        )
+        textGeometry4.computeBoundingBox();
+        textGeometry4.translate(
+            -(textGeometry4.boundingBox.max.x - 0.02) * 0.5,
+            -(textGeometry4.boundingBox.max.y + 5.52) * 0.5,
+            -(textGeometry4.boundingBox.max.z - 0.05) * 0.5,
+        )
         const textMaterial = new THREE.MeshMatcapMaterial({ matcap: matcapWordTextureLoader });
         const text = new THREE.Mesh(textGeometry, textMaterial);
         const text2 = new THREE.Mesh(textGeometry2, textMaterial);
-        scene.add(text, text2);
+        const text3 = new THREE.Mesh(textGeometry3, textMaterial);
+        const text4 = new THREE.Mesh(textGeometry4, textMaterial);
+        scene.add(text, text2, text3, text4);
 
         for (let i = 0; i < 300; i++) {
             const donut = new THREE.Mesh(donutGeometry, donutMaterial);
@@ -94,6 +141,8 @@ fontLoader.load(
         }
     }
 )
+
+console.log('❤'.charCodeAt())
 
 // this is for the debugger to dynamically change the color of the main cube as well as add a spin feature
 // the function has to be within an object in order for it to be used (since the properties of the debugger are objects)
