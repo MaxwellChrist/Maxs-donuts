@@ -10,6 +10,14 @@ import typefaceFont1 from 'three/examples/fonts/optimer_regular.typeface.json';
 // the other is to add them to a folder you can grab (grabbed them out of the node modules first)
 // import typefaceFont2 from '../static/fonts/optimer_bold.typeface.json';
 
+// creating the scene
+const scene = new THREE.Scene();
+
+//axes helper class shows a representation of the x, y, and z axis of the camera
+// x is red, y is green, and z is blue. The value in the parameter is the length of each axis
+const axesHelper = new THREE.AxesHelper(2);
+scene.add(axesHelper)
+
 // to load the fonts, you need to import FontLoader, TextGeometry, then do the following
 const fontLoader = new FontLoader()
 fontLoader.load(
@@ -20,15 +28,22 @@ fontLoader.load(
             { 
                 font, size: 0.5, 
                 height: 0.2, 
-                curveSegments: 12, 
+                curveSegments: 4, 
                 bevelEnabled: true, 
-                bevelThickness: 0.03, 
+                bevelThickness: 0.05, 
                 bevelSize: 0.02,
                 bevelOffset: 0,
-                bevelSegments: 5
+                bevelSegments: 2
             }
         );
-        const textMaterial = new THREE.MeshBasicMaterial();
+        textGeometry.computeBoundingBox();
+        // this is centering the text and taking in account the bevel thickness and size
+        textGeometry.translate(
+            -(textGeometry.boundingBox.max.x - 0.02) * 0.5,
+            -(textGeometry.boundingBox.max.y - 0.02) * 0.5,
+            -(textGeometry.boundingBox.max.z - 0.05) * 0.5,
+        )
+        const textMaterial = new THREE.MeshBasicMaterial({ wireframe: true });
         const text = new THREE.Mesh(textGeometry, textMaterial);
         scene.add(text)
     }
@@ -42,9 +57,6 @@ const param = {
         gsap.to(mesh.rotation, { duration: 2, y: mesh.rotation.y + Math.PI * 2 })
     }
 };
-
-// creating the scene
-const scene = new THREE.Scene();
 
 // this is one way to load an image, which is by grabbing it in a folder called static and using the Image class
 // we cannot use the image directly however, so we need to transform it into a texture
@@ -343,11 +355,6 @@ mesh.rotation.set(Math.PI * 0.25, Math.PI * 0.25, 0);
 // quaternion is a representation of rotation but in a more mathematical way
 // it updates when you change a rotation. Since you can only rotate with one of the two,
 // I will keep the code above with the rotation property
-
-//axes helper class shows a representation of the x, y, and z axis of the camera
-// x is red, y is green, and z is blue. The value in the parameter is the length of each axis
-const axesHelper = new THREE.AxesHelper(2);
-scene.add(axesHelper)
 
 // creating the camera angle
 // I used a perspective camera, meaning objects far away will appear small and objects close up will appear large
@@ -709,4 +716,12 @@ window.addEventListener('keydown', (e) => {
 - There are many ways of getting fonts in that format. First, you can convert your font with converters like this one: 
 - https://gero3.github.io/facetype.js/. You have to provide a file and click on the convert button. Three.js also has
 - fonts provided right out of the box you can use
+
+-There are several ways to center the text. One way of doing it is by using bounding. The bounding is the information 
+- associated with the geometry that tells what space is taken by that geometry. It can be a box or a sphere.
+-You cannot actually see those boundings, but it helps Three.js easily calculate if the object is on the screen, and if not, 
+- the object won't even be rendered. That is called frustum culling. What we want is to use this bounding to know the size 
+- of the geometry and recenter it. By default, Three.js is using sphere bounding, but for the 3D text boxes, you will want
+- to use box bounding. To do so, we can ask Three.js to calculate this box bounding by calling computeBoundingBox() 
+- on the geometry
 */
