@@ -53,6 +53,7 @@ loadingManager.onProgress = () => {
     console.log('on progress')
 }
 const textureLoader = new THREE.TextureLoader(loadingManager);
+const cubeTextureLoader = new THREE.CubeTextureLoader();
 let colorTexture = textureLoader.load('/textures/door/color.jpg');
 const alphaTexture = textureLoader.load('/textures/door/alpha.jpg');
 const heightTexture = textureLoader.load('/textures/door/height.jpg');
@@ -63,6 +64,15 @@ const roughnessTexture = textureLoader.load('/textures/door/roughness.jpg');
 
 const gradientTexture = textureLoader.load('./textures/gradients/3.jpg');
 const matcapTexture = textureLoader.load('./textures/matcaps/3.png');
+
+const environmentMapTexture = cubeTextureLoader.load([
+    './textures/environmentMaps/0/px.jpg',
+    './textures/environmentMaps/0/nx.jpg',
+    './textures/environmentMaps/0/py.jpg',
+    './textures/environmentMaps/0/ny.jpg',
+    './textures/environmentMaps/0/pz.jpg',
+    './textures/environmentMaps/0/nz.jpg',
+])
 
 // we can repeate the texture by using the repeat property. It's a vector2 with x and y properties
 // colorTexture.repeat.x = 2;
@@ -235,11 +245,40 @@ group.visible = false
 // gradientTexture.magFilter = THREE.NearestFilter;
 // gradientTexture.generateMipmaps = false;
 
-// this material is called mesh standard material and it seems to be the most popular. You
-// can change a few other properties as well
+// this material is called mesh standard material and it seems to be the most popular. It
+// uses physically based rendering principles (PBR), making it react to lights in the scene
+// and more realistic conditions with additional properties like the ones light below. One
+// called ambient occlusion map will add shadows where the texture is darker, but I need to
+// add a second set of UV, and it is called uv2 (which we will add to in the area the geometry
+// is defined). You can also change the intensity of the shadows with aoMapIntensity and you 
+// can move the vertices with displacementMap. Also instead of using roughness and metalness 
+// for the geometry, we can use it on the texture. Be careful not to combine them since it will
+// affect the texture by the value you choose in the geometry. Normal map will fake the normals
+// orientation and add details on the surface regardless of the divisions you input in the shape.
+// You can also change the strength of the intensity with normalScale property, but it is a 
+// vector2. You can also you the alpha using alphaMap property, but keep in ming to use the
+// transparent property after
 const material8 = new THREE.MeshStandardMaterial();
-material8.roughness = 0.25;
-material8.roughness = 0.5;
+material8.roughness = 0.2;
+material8.metalness = 0.7;
+// material8.map = colorTexture;
+// material8.aoMap = ambientOcclusionTexture;
+// material8.aoMapIntensity = 1;
+// material8.displacementMap = heightTexture;
+// material8.displacementScale = 0.05;
+// material8.roughnessMap = roughnessTexture;
+// material8.metalnessMap = metalnessTexture;
+// material8.normalMap = normalTexture;
+// material8.normalScale.set(0.5, 0.5);
+// material8.alphaMap = alphaTexture;
+// material8.transparent = true;
+material8.envMap = environmentMapTexture
+
+// The next material is called mesh physical material, and it is similar to the mesh standard
+// material but with a support of a clear coat effect
+const material9 = new THREE.MeshPhysicalMaterial()
+
+// the next material is called points material
 
 // now I will add some lights to show the other materials in store. The first light is
 // called an ambient light and the second is calls a point light
@@ -248,12 +287,15 @@ const pointLight = new THREE.PointLight(0xffffff, 0.5);
 pointLight.position.set(2, 3, 4);
 scene.add(ambientLight, pointLight)
 
-const sphere = new THREE.Mesh(new THREE.SphereBufferGeometry(0.5, 16, 16), material8);
-const plane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material8);
-const torus = new THREE.Mesh(new THREE.TorusBufferGeometry(0.3, 0.2, 16, 32), material8)
+const sphere = new THREE.Mesh(new THREE.SphereBufferGeometry(0.5, 64, 64), material8);
+const plane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 100, 100), material8);
+const torus = new THREE.Mesh(new THREE.TorusBufferGeometry(0.3, 0.2, 64, 128), material8)
 sphere.position.set(-1.5, 0, 0);
 plane.position.set(0, 0, 0);
 torus.position.set(1.5, 0, 0);
+sphere.geometry.setAttribute('uv2', new THREE.BufferAttribute(sphere.geometry.attributes.uv.array, 2));
+plane.geometry.setAttribute('uv2', new THREE.BufferAttribute(plane.geometry.attributes.uv.array, 2));
+torus.geometry.setAttribute('uv2', new THREE.BufferAttribute(torus.geometry.attributes.uv.array, 2));
 scene.add(sphere, plane, torus);
 
 // scale changes the value of the geometry to "scale" with the coordinates you choose
@@ -458,7 +500,7 @@ looper();
 // using the lil-gui library to debug app and make sure you place it below the things in your code you're debugging
 //first values have to be an object, then the property you're looking to debug, then the minimum
 // value, maximum value, and the step to show the precision by which the position can be moved by
-const debug = new lil.GUI({ width: 200 });
+const debug = new lil.GUI({ width: 400 });
 // starts the program with the panel closed
 debug.close();
 //the below features can also be written like so:
@@ -481,8 +523,10 @@ debug.onChange(() => {
     material.color.set(param.color)
 });
 debug.add(param, 'spin').name('main box spin button');
-debug.add(material8, 'roughness').min(0).max(1).step(0.01).name('new shapes roughness');
-debug.add(material8, 'metalness').min(0).max(1).step(0.01).name('new shapes metalness');
+debug.add(material8, 'roughness').min(0).max(1).step(0.001).name('new shapes roughness');
+debug.add(material8, 'metalness').min(0).max(1).step(0.001).name('new shapes metalness');
+debug.add(material8, 'aoMapIntensity').min(0).max(10).step(0.001).name('new shapes shadow intensity');
+debug.add(material8, 'displacementScale').min(0).max(1).step(0.001).name('new shapes vertices scale');
 
 // this allows users to toggle the debugger by pressing the enter key
 window.addEventListener('keydown', (e) => {
@@ -619,4 +663,12 @@ window.addEventListener('keydown', (e) => {
 
 - for a list of matcap textures, visit this page: https://github.com/nidorx/matcaps. Be careful though that you have the right
 - to use it if it's for a profession website
+
+- there are things called environment maps, which are like an image of what's surrounding the scene. You can use it to add 
+- reflection or refraction to your objects. It can also be used as lighting information. Keep in mind that Three.js only 
+- supports cube environment maps. Cube environment maps are 6 images with each one corresponding to a side of the environment.
+- You can find some by searching for them, but again you have to make sure you have the right to use them. One is called 
+- HDRIHaven, which doesn't ask you to credit the authors. Also there are websites that convert the environment maps to cube maps.
+- To convert an HDRI to a cube map, you can use this online tool: https://matheowis.github.io/HDRI-to-CubeMap/ and choose
+- the last option when converting it.
 */
