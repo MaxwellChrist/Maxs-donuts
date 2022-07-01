@@ -96,8 +96,8 @@ const roughnessTexture = textureLoader.load('/textures/door/roughness.jpg');
 
 // if you are using nearest filter on minFilter, you don't need mipmaps. So we can deactive the mipmapping generation
 // with the following( keep in mind smaller textures on the GPU is better but don't make them smaller if you don't have to):
-colorTexture.generateMipmaps = false;
-colorTexture.minFilter = THREE.NearestFilter;
+// colorTexture.generateMipmaps = false;
+// colorTexture.minFilter = THREE.NearestFilter;
 
 // creating the cube
 // created geometry variable to store the dimensions of the cube. Its parameters are the dimensions of the cube
@@ -141,10 +141,11 @@ const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
 
 // const material = new THREE.MeshBasicMaterial({ color: param.color });
 // the above way was for the red cube, but we use map to use a texture
-const material = new THREE.MeshBasicMaterial({ map: colorTexture });
+const material = new THREE.MeshBasicMaterial({ color: 'red' });
+// const material = new THREE.MeshBasicMaterial({ map: colorTexture });
 const mesh = new THREE.Mesh(geometry, material);
 mesh.position.set(0, 0, 0);
-scene.add(mesh);
+// scene.add(mesh);
 
 // if you had to build a house, you would have to add walls, doors, windows, etc.
 //this would be tricky constructing all independently, but luckly there's the Group class
@@ -161,6 +162,17 @@ cube3.position.set(2, 0, 0);
 group.add(cube3);
 group.position.set(0, 1, 0);
 group.visible = false
+
+// This section I will try to create new materials with new geometries
+const material1 = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+const sphere = new THREE.Mesh(new THREE.SphereBufferGeometry(0.5, 16, 16), material1);
+const plane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material1);
+const torus = new THREE.Mesh(new THREE.TorusBufferGeometry(0.3, 0.2, 16, 32), material1)
+sphere.position.set(-1.5, 0, 0);
+plane.position.set(0, 0, 0);
+torus.position.set(1.5, 0, 0);
+scene.add(sphere, plane, torus);
+
 
 
 // scale changes the value of the geometry to "scale" with the coordinates you choose
@@ -499,9 +511,17 @@ window.addEventListener('keydown', (e) => {
 - Three.js can divide the size of the texture by 2. Some examples: 512x512, 1024x1024 or 512x2048. 512, 1024 and 2048 can be 
 - divided by 2 until it reaches 1. If you are using a texture with a width or height different than a power of 2 value, 
 - Three.js will try to stretch it to the closest power of 2 number, which can have visually poor results, and you'll also get 
-- a warning in the console.
+- a warning in the console. If you are suing a normal texture, you will want to have the exact values which is why we shouldn't
+- apply compression and why you want to use png files.
 
 - Data: won't get into at the moment
 
-- websites to find textures: poliigon.com and 3dtextures.me
+- websites to find textures: poliigon.com, freestocktextures.com, and 3dtextures.me. Also make sure you have the right to 
+- use the texture is it's not for personal use. You can also create your own with adobe photoshop and substance designeer,
+- but they usually cost money to use
+*/
+
+/* additional notes for materials:
+- What are they? They are used to put a color on each visible pixel of the geometry you choose. The algorithms to place the color
+- are written in programs called shaders.
 */
