@@ -61,8 +61,8 @@ const ambientOcclusionTexture = textureLoader.load('/textures/door/ambientOcclus
 const metalnessTexture = textureLoader.load('/textures/door/metalness.jpg');
 const roughnessTexture = textureLoader.load('/textures/door/roughness.jpg');
 
-const gradient1 = textureLoader.load('./gradients/3.jpg');
-const matcaps1 = textureLoader.load('./matcaps/1.png');
+const gradientTexture = textureLoader.load('./textures/gradients/3.jpg');
+const matcapTexture = textureLoader.load('./textures/matcaps/3.png');
 
 // we can repeate the texture by using the repeat property. It's a vector2 with x and y properties
 // colorTexture.repeat.x = 2;
@@ -167,16 +167,94 @@ group.position.set(0, 1, 0);
 group.visible = false
 
 // This section I will try to create new materials with new geometries
-const material1 = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-const sphere = new THREE.Mesh(new THREE.SphereBufferGeometry(0.5, 16, 16), material1);
-const plane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material1);
-const torus = new THREE.Mesh(new THREE.TorusBufferGeometry(0.3, 0.2, 16, 32), material1)
+
+// there are a couple different ways to add colors or textures to materials and I'll show them below:
+// keep in mind that once you instantiate the material, the color property becomes a color class, meaning
+// you cannot just add something like material1.color = 'blue'. I will show below how to do this as well
+// const material1 = new THREE.MeshBasicMaterial({ 
+//     color: 'red',
+//     map: colorTexture
+//  });
+// const material1 = new THREE.MeshBasicMaterial(); // this is the line instantiating the material
+// material1.map = colorTexture;
+// material1.color = new THREE.Color('blue'); // after instantiation, this is one way to change the color
+// material1.color.set('#ff00ff'); // after instantiation, this is another way to change the color
+// material1.wireframe = true;
+
+// material1.opacity = 0.5; // when using opacity or alpha, you have to add the transparent property for it to work
+// material1.transparent = true;
+// material1.alphaMap = alphaTexture;
+// material1.transparent = true;
+
+// side lets you decide which side of a face is visible. Front side is set by default
+// try to avoid using doubleside if you can since its more stressful on you gpu
+// material1.side = THREE.DoubleSide
+
+// This part I will test using a new material called mesh normal material. This displays
+// a nice purple color to the material. Normals are information that contains the direction
+// of the outside of the face of the geometric pattern. They share common properties with
+// mesh basic material like the ones above, but also flatShading property. This property
+// will flatten the faces, meaning that the normals won't be interpolated between the vertices.
+// Mesh normal material is usually used to debug normals.
+// const material2 = new THREE.MeshNormalMaterial();
+// material2.flatShading = true;
+
+// This part I will test using a new material called mesh matcap material. This displays
+// a color by using the normals as a reference to pick the right color on a texture that 
+// looks like a sphere. It takes a picture and picks the colors in it, then compares it
+// to the normals related to the camera angle to render a color. This creates an illusion
+// that the objects are being struck with light, so you can simulate light in the scene
+// without actually adding it
+// const material3 = new THREE.MeshMatcapMaterial();
+// material3.matcap = matcapTexture
+
+// This new material will color the geometry in white if it's close to the camera and 
+// black if it's far from the camera
+// const material4 = new THREE.MeshDepthMaterial();
+
+// The mesh lambert material has new properties related to light. It has great performance
+// but it sometimes shows strange patterns on the geometry, like blurry lines in the torus
+// geometry shape I made
+// const material5 = new THREE.MeshLambertMaterial();
+
+// this material is similar to the mesh lambert material, but it has less performance. It 
+// does make up for the fact that it does not show the possibility of strange patterns like
+// mesh lambert material. You can also add a shininess property to it. You can change the
+// color of the shine with the specular property
+// const material6 = new THREE.MeshPhongMaterial();
+// material6.shininess = 100;
+// material6.specular = new THREE.Color(0x0000ff);
+
+// this material is called mesh toon material and it is similar to the lambert, but cartoonish.
+// You can add extra properties like gradientMap and gradientTexture. 
+// const material7 = new THREE.MeshToonMaterial();
+// material7.gradientMap = gradientTexture;
+// this removes the cartoon effect because the gradient is small and the magFilter tries to fix
+// this with minmapping. What I did below is a way to correct this
+// gradientTexture.minFilter = THREE.NearestFilter;
+// gradientTexture.magFilter = THREE.NearestFilter;
+// gradientTexture.generateMipmaps = false;
+
+// this material is called mesh standard material and it seems to be the most popular. You
+// can change a few other properties as well
+const material8 = new THREE.MeshStandardMaterial();
+material8.roughness = 0.25;
+material8.roughness = 0.5;
+
+// now I will add some lights to show the other materials in store. The first light is
+// called an ambient light and the second is calls a point light
+const ambientLight = new THREE.AmbientLight(0xffffff , 0.5);
+const pointLight = new THREE.PointLight(0xffffff, 0.5);
+pointLight.position.set(2, 3, 4);
+scene.add(ambientLight, pointLight)
+
+const sphere = new THREE.Mesh(new THREE.SphereBufferGeometry(0.5, 16, 16), material8);
+const plane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material8);
+const torus = new THREE.Mesh(new THREE.TorusBufferGeometry(0.3, 0.2, 16, 32), material8)
 sphere.position.set(-1.5, 0, 0);
 plane.position.set(0, 0, 0);
 torus.position.set(1.5, 0, 0);
 scene.add(sphere, plane, torus);
-
-
 
 // scale changes the value of the geometry to "scale" with the coordinates you choose
 mesh.scale.set(0.5, 0.5, 0.5)
@@ -403,6 +481,8 @@ debug.onChange(() => {
     material.color.set(param.color)
 });
 debug.add(param, 'spin').name('main box spin button');
+debug.add(material8, 'roughness').min(0).max(1).step(0.01).name('new shapes roughness');
+debug.add(material8, 'metalness').min(0).max(1).step(0.01).name('new shapes metalness');
 
 // this allows users to toggle the debugger by pressing the enter key
 window.addEventListener('keydown', (e) => {
@@ -414,9 +494,6 @@ window.addEventListener('keydown', (e) => {
         }
     }
 });
-
-//  this is to start the program with the debugger closed and having the option to click on it to open
-
 ///////////////////////////////////////////The end of my code///////////////////////////////////////////////////////////////////
 /* additional notes for cameras:
 - Camera class -> do not use directly (all other cameras inherit from camera class)
@@ -536,4 +613,10 @@ window.addEventListener('keydown', (e) => {
 /* additional notes for materials:
 - What are they? They are used to put a color on each visible pixel of the geometry you choose. The algorithms to place the color
 - are written in programs called shaders.
+
+- I have been testing materials with mesh basic material, which applies a uniform color or a texture on  the geometry, but there
+- are plenty of others and I'll try to use some of those
+
+- for a list of matcap textures, visit this page: https://github.com/nidorx/matcaps. Be careful though that you have the right
+- to use it if it's for a profession website
 */
