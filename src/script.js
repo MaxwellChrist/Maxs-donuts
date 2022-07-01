@@ -3,6 +3,36 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as lil from 'lil-gui';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
+// one way to import a typeface
+import typefaceFont1 from 'three/examples/fonts/optimer_regular.typeface.json';
+// the other is to add them to a folder you can grab (grabbed them out of the node modules first)
+// import typefaceFont2 from '../static/fonts/optimer_bold.typeface.json';
+
+// to load the fonts, you need to import FontLoader, TextGeometry, then do the following
+const fontLoader = new FontLoader()
+fontLoader.load(
+    './fonts/optimer_bold.typeface.json',
+    (font) => {
+        const textGeometry = new TextGeometry(
+            'Max Christ',
+            { 
+                font, size: 0.5, 
+                height: 0.2, 
+                curveSegments: 12, 
+                bevelEnabled: true, 
+                bevelThickness: 0.03, 
+                bevelSize: 0.02,
+                bevelOffset: 0,
+                bevelSegments: 5
+            }
+        );
+        const textMaterial = new THREE.MeshBasicMaterial();
+        const text = new THREE.Mesh(textGeometry, textMaterial);
+        scene.add(text)
+    }
+)
 
 // this is for the debugger to dynamically change the color of the main cube as well as add a spin feature
 // the function has to be within an object in order for it to be used (since the properties of the debugger are objects)
@@ -296,7 +326,7 @@ torus.position.set(1.5, 0, 0);
 sphere.geometry.setAttribute('uv2', new THREE.BufferAttribute(sphere.geometry.attributes.uv.array, 2));
 plane.geometry.setAttribute('uv2', new THREE.BufferAttribute(plane.geometry.attributes.uv.array, 2));
 torus.geometry.setAttribute('uv2', new THREE.BufferAttribute(torus.geometry.attributes.uv.array, 2));
-scene.add(sphere, plane, torus);
+// scene.add(sphere, plane, torus);
 
 // scale changes the value of the geometry to "scale" with the coordinates you choose
 mesh.scale.set(0.5, 0.5, 0.5)
@@ -671,4 +701,12 @@ window.addEventListener('keydown', (e) => {
 - HDRIHaven, which doesn't ask you to credit the authors. Also there are websites that convert the environment maps to cube maps.
 - To convert an HDRI to a cube map, you can use this online tool: https://matheowis.github.io/HDRI-to-CubeMap/ and choose
 - the last option when converting it.
+*/
+
+/* additional notes for 3D Text:
+- Three.js already supports 3D text geometries with the TextGeometry class. The problem is that you must specify a font, 
+- and this font must be in a particular json format called typeface. You also have to have the right to use that font.
+- There are many ways of getting fonts in that format. First, you can convert your font with converters like this one: 
+- https://gero3.github.io/facetype.js/. You have to provide a file and click on the convert button. Three.js also has
+- fonts provided right out of the box you can use
 */
