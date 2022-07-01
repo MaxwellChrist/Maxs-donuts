@@ -13,10 +13,23 @@ import typefaceFont1 from 'three/examples/fonts/optimer_regular.typeface.json';
 // creating the scene
 const scene = new THREE.Scene();
 
+// clock class has methods in which you can count exact seconds. I will use that to rotate the cube with 
+// this animation trick instead of the requestAnimationFrame method
+const clock = new THREE.Clock();
+
 //axes helper class shows a representation of the x, y, and z axis of the camera
 // x is red, y is green, and z is blue. The value in the parameter is the length of each axis
 const axesHelper = new THREE.AxesHelper(2);
 scene.add(axesHelper)
+
+// textures for the 3D text
+const wordTextureLoader = new THREE.TextureLoader();
+const matcapWordTextureLoader = wordTextureLoader.load('./textures/matcaps/7.png');
+const matcapDonutTextureLoader = wordTextureLoader.load('./textures/matcaps/1.png');
+
+// the geometry and material for the donuts (put above load to improve performance)
+const donutGeometry = new THREE.TorusBufferGeometry(0.3, 0.2, 20, 45);
+const donutMaterial = new THREE.MeshMatcapMaterial({ matcap: matcapDonutTextureLoader });
 
 // to load the fonts, you need to import FontLoader, TextGeometry, then do the following
 const fontLoader = new FontLoader()
@@ -38,14 +51,33 @@ fontLoader.load(
         );
         textGeometry.computeBoundingBox();
         // this is centering the text and taking in account the bevel thickness and size
-        textGeometry.translate(
-            -(textGeometry.boundingBox.max.x - 0.02) * 0.5,
-            -(textGeometry.boundingBox.max.y - 0.02) * 0.5,
-            -(textGeometry.boundingBox.max.z - 0.05) * 0.5,
-        )
-        const textMaterial = new THREE.MeshBasicMaterial({ wireframe: true });
+        // textGeometry.translate(
+        //     -(textGeometry.boundingBox.max.x - 0.02) * 0.5,
+        //     -(textGeometry.boundingBox.max.y - 0.02) * 0.5,
+        //     -(textGeometry.boundingBox.max.z - 0.05) * 0.5,
+        // )
+
+        // or you could just do this
+        textGeometry.center();
+        const textMaterial = new THREE.MeshMatcapMaterial({ matcap: matcapWordTextureLoader });
         const text = new THREE.Mesh(textGeometry, textMaterial);
-        scene.add(text)
+        scene.add(text);
+
+        for (let i = 0; i < 300; i++) {
+            const donut = new THREE.Mesh(donutGeometry, donutMaterial);
+
+            donut.position.x = (Math.random() - 0.5) * 10;
+            donut.position.y = (Math.random() - 0.5) * 10;
+            donut.position.z = (Math.random() - 0.5) * 10;
+
+            donut.rotation.x = Math.random() * Math.PI;
+            donut.rotation.y = Math.random() * Math.PI;
+
+            const scale = Math.random();
+            donut.scale.set(scale, scale, scale);
+
+            scene.add(donut)
+        }
     }
 )
 
@@ -469,10 +501,6 @@ orbit.enableDamping = true
 
 // this is to take the previous time and subtract it from the current time to get whats call the delta time
 let time = Date.now();
-
-// clock class has methods in which you can count exact seconds. I will use that to rotate the cube with 
-// this animation trick instead of the requestAnimationFrame method
-const clock = new THREE.Clock();
 
 // this is using the green sock library to do an animation where we move the red cube to the right of the page after 1 sec,
 // then to the middle after 2 seconds with a longer duration to make it look about the same speed
