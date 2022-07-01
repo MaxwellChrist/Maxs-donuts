@@ -19,8 +19,8 @@ const clock = new THREE.Clock();
 
 //axes helper class shows a representation of the x, y, and z axis of the camera
 // x is red, y is green, and z is blue. The value in the parameter is the length of each axis
-const axesHelper = new THREE.AxesHelper(2);
-scene.add(axesHelper)
+// const axesHelper = new THREE.AxesHelper(2);
+// scene.add(axesHelper)
 
 // textures for the 3D text
 const wordTextureLoader = new THREE.TextureLoader();
@@ -49,19 +49,33 @@ fontLoader.load(
                 bevelSegments: 2
             }
         );
-        textGeometry.computeBoundingBox();
-        // this is centering the text and taking in account the bevel thickness and size
-        // textGeometry.translate(
-        //     -(textGeometry.boundingBox.max.x - 0.02) * 0.5,
-        //     -(textGeometry.boundingBox.max.y - 0.02) * 0.5,
-        //     -(textGeometry.boundingBox.max.z - 0.05) * 0.5,
-        // )
 
-        // or you could just do this
-        textGeometry.center();
+        const textGeometry2 = new TextGeometry(
+            'Full Stack Web Developer',
+            { 
+                font, size: 0.5, 
+                height: 0.2, 
+                curveSegments: 4, 
+                bevelEnabled: true, 
+                bevelThickness: 0.05, 
+                bevelSize: 0.02,
+                bevelOffset: 0,
+                bevelSegments: 2
+            }
+        );
+
+        textGeometry.computeBoundingBox();
+        textGeometry2.computeBoundingBox();
+        textGeometry.translate(
+            -(textGeometry.boundingBox.max.x - 0.02) * 0.5,
+            -(textGeometry.boundingBox.max.y - 1.52) * 0.5,
+            -(textGeometry.boundingBox.max.z - 0.05) * 0.5,
+        )
+        textGeometry2.center();
         const textMaterial = new THREE.MeshMatcapMaterial({ matcap: matcapWordTextureLoader });
         const text = new THREE.Mesh(textGeometry, textMaterial);
-        scene.add(text);
+        const text2 = new THREE.Mesh(textGeometry2, textMaterial);
+        scene.add(text, text2);
 
         for (let i = 0; i < 300; i++) {
             const donut = new THREE.Mesh(donutGeometry, donutMaterial);
@@ -449,7 +463,7 @@ window.addEventListener('mousemove', e => {
 // This will not work because everything is in the center. The camera is inside the cube itself
 // we need to move the camera backwards with the position, rotation, and scale properties
 // the set method below is shorthand for editing the x, y, and z axis
-camera.position.set(0, 0, 3);
+camera.position.set(0, 0, 4);
 scene.add(camera);
 
 // orthographic camera differs from perspective camera by its lack of perspective
