@@ -4,6 +4,18 @@ import gsap from 'gsap';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as lil from 'lil-gui';
 
+// this is for the debugger to dynamically change the color of the main cube as well as add a spin feature
+// the function has to be within an object in order for it to be used (since the properties of the debugger are objects)
+const param = {
+    color: 0xff0000,
+    spin: function() {
+        gsap.to(mesh.rotation, { duration: 2, y: mesh.rotation.y + Math.PI * 2 })
+    }
+};
+
+// creating the scene
+const scene = new THREE.Scene();
+
 // this is one way to load an image, which is by grabbing it in a folder called static and using the Image class
 // we cannot use the image directly however, so we need to transform it into a texture
 // we do so by declaring the colorTexture variable outside the function, and upon the load event, the texture 
@@ -41,7 +53,7 @@ loadingManager.onProgress = () => {
     console.log('on progress')
 }
 const textureLoader = new THREE.TextureLoader(loadingManager);
-const colorTexture = textureLoader.load('/textures/door/color.jpg');
+let colorTexture = textureLoader.load('/textures/door/color.jpg');
 const alphaTexture = textureLoader.load('/textures/door/alpha.jpg');
 const heightTexture = textureLoader.load('/textures/door/height.jpg');
 const normalTexture = textureLoader.load('/textures/door/normal.jpg');
@@ -49,24 +61,51 @@ const ambientOcclusionTexture = textureLoader.load('/textures/door/ambientOcclus
 const metalnessTexture = textureLoader.load('/textures/door/metalness.jpg');
 const roughnessTexture = textureLoader.load('/textures/door/roughness.jpg');
 
-// this is for the debugger to dynamically change the color of the main cube as well as add a spin feature
-// the function has to be within an object in order for it to be used (since the properties of the debugger are objects)
-const param = {
-    color: 0xff0000,
-    spin: function() {
-        gsap.to(mesh.rotation, { duration: 2, y: mesh.rotation.y + Math.PI * 2 })
-    }
-};
+// we can repeate the texture by using the repeat property. It's a vector2 with x and y properties
+// colorTexture.repeat.x = 2;
+// colorTexture.repeat.y = 3;
 
-// creating the scene
-const scene = new THREE.Scene();
+// by default, the texture doesn't repeat and the last pixel gets stretched, so we can change that feature
+// with repeat wrapping on the wrapS and wrapT properties
+// colorTexture.wrapS = THREE.RepeatWrapping;
+// colorTexture.wrapT = THREE.RepeatWrapping;
+
+// you can alternate the direction with mirrored repeat wrapping
+// colorTexture.wrapS = THREE.MirroredRepeatWrapping;
+// colorTexture.wrapT = THREE.MirroredRepeatWrapping;
+
+// we can offset the texture using the offset property, which is a vector2
+// colorTexture.offset.x = 0.5;
+// colorTexture.offset.y = 0.5;
+
+// we can rotate the texture using the rotation property
+// colorTexture.rotation = Math.PI * 0.25;
+
+// by deselecting everything execept the above line, you'll notice the rotation offcurs around one specific corner of the cube
+// we can change this pivot point with the cetner property. It is a vector2, so we only need to fix the x and y axis
+// colorTexture.center.x = 0.5;
+// colorTexture.center.y = 0.5;
+
+//this is a filtering feature when a texture undergoes mipmapping. I will change the texture to show that you can see 
+// both the minification filter and magnification filter
+// something called moire patterns
+// colorTexture = textureLoader.load('/textures/checkerboard-1024x1024.png');
+// colorTexture.minFilter = THREE.NearestFilter;
+// colorTexture = textureLoader.load('/textures/checkerboard-8x8.png');
+// colorTexture.magFilter = THREE.NearestFilter;
+
+// if you are using nearest filter on minFilter, you don't need mipmaps. So we can deactive the mipmapping generation
+// with the following( keep in mind smaller textures on the GPU is better but don't make them smaller if you don't have to):
+colorTexture.generateMipmaps = false;
+colorTexture.minFilter = THREE.NearestFilter;
 
 // creating the cube
 // created geometry variable to store the dimensions of the cube. Its parameters are the dimensions of the cube
 // created material variable to store the material/color the cube will be covered with
 // created mesh variable to combine the geometry and material into something we can add to the scene
 // lastly add it to the scene
-const geometry = new THREE.BoxGeometry(1, 1, 1, 5, 5, 5);
+const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
+// console.log(geometry.attributes.uv);
 
 // If I wanted to create a specific triangle instead of the box, I could do the following
 // these are broken down into three vertices, each containing an x, y, and z axis, which is why we used 9 values 
@@ -429,4 +468,40 @@ window.addEventListener('keydown', (e) => {
 
 - there are a few ways to load the image, but I'm going to load it from a class
 
+- UV unwrapping replaces the box geometry by other geometries. It's like unwrapping an origami of something
+- each vertex will have 2D coordinate on a flat (usually square) plane, and you can actually see those UV 2D 
+- coordinates in the geometry.attributes.uv property
+
+- If you look at the cube's top face while looking off at a steep angle, you'll notice a blurry surface texture
+- This is due to something called filtering and mipmapping. Mipmapping is a technique that consists of creating
+- a half smaller version again and again and again until eventually you get a 1x1 texture. All of these versions
+- get sent to the GPU and the GPU selects the best version of the texture. Although the GPU handles this process,
+- we can give it two types of filtering algorithms. One is called minification filter (the texture is too big for
+- the surface it covers) and it has a property called minFilter that has a list of value. The other is called a
+- magnification filter (the texture is too small for the surface it covers)
+
+- using nearest filter for filtering is more efficient at making something blurry look sharp, so if the result is fine,
+- use THREE.NearestFilter
+
+- When preparing textures, there are three things to keep in mind: the weight, the size of the image (resolution),
+- and the data you put inside the texture. 
+
+- Weight: The user will have to download the textures, so choosingt the right type
+- is important. jpg is usually lighter but comes at the cost of more likely being distorted from its original shape, 
+- while png is heavire and is more likely to be the way you saw the file. There are compression websites to help 
+- lower the weight of the file, like TinyPNG.
+
+- Size: Each pixel of the textures you are using will have to be stored on the GPU regardless of the image's weight. 
+- And like your hard drive, the GPU has storage limitations. It's even worse because the automatically generated mipmapping 
+- increases the number of pixels that have to be stored. Try to reduce the size of your images as much as possible.
+- If you remember what we said about the mipmapping, Three.js will produce a half smaller version of the texture repeatedly 
+- until it gets a 1x1 texture. Because of that, your texture width and height must be a power of 2. That is mandatory so that 
+- Three.js can divide the size of the texture by 2. Some examples: 512x512, 1024x1024 or 512x2048. 512, 1024 and 2048 can be 
+- divided by 2 until it reaches 1. If you are using a texture with a width or height different than a power of 2 value, 
+- Three.js will try to stretch it to the closest power of 2 number, which can have visually poor results, and you'll also get 
+- a warning in the console.
+
+- Data: won't get into at the moment
+
+- websites to find textures: poliigon.com and 3dtextures.me
 */
